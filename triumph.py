@@ -1,6 +1,7 @@
 # coding=utf-8
 from time import sleep
 import subprocess
+import re
 import midi
 
 def say(t):
@@ -12,6 +13,68 @@ notes = list(i for i in m[1] if isinstance(i, midi.NoteOnEvent))
 
 #m = midi.read_midifile('./mary.mid')
 #notes = list(i for i in m[1] if isinstance(i, midi.NoteOnEvent))
+
+arpa_to_osx = [
+    ('AA',	'AA'),
+    ('AE',	'AE'),
+    ('AH',	'UX'),
+    ('AO',	'AO'),
+    ('AW',	'AW'),
+    ('AY',	'AY'),
+    ('B',	'b'),
+    ('CH',	'C'),
+    ('D',	'd'),
+    ('DH',	'D'),
+    ('EH',	'EH'),
+    ('ER',	'UX'),
+    ('EY',	'EY'),
+    ('F',	'f'),
+    ('G',	'g'),
+    ('HH',	'h'),
+    ('IH',	'IH'),
+    ('IY',	'IY'),
+    ('JH',	'j'),
+    ('K',	'k'),
+    ('L',	'l'),
+    ('M',	'm'),
+    ('N',	'n'),
+    ('NG',	'N'),
+    ('OW',	'OW'),
+    ('OY',	'OY'),
+    ('P',	'p'),
+    ('R',	'r'),
+    ('S',	's'),
+    ('SH',	'S'),
+    ('T',	't'),
+    ('TH',	'T'),
+    ('UH',	'UH'),
+    ('UW',	'UW'),
+    ('V',	'v'),
+    ('W',	'w'),
+    ('Y',	'y'),
+    ('Z',	'z'),
+    ('ZH',	'Z')
+]
+arpa_to_osx = dict(arpa_to_osx)
+
+enpron = {}
+for l in open('/Users/adam/code/hebraize/cmudict-0.7b'):
+    if l[:3] != ';;;':
+        w, p = l.split(' ', 1)
+        pron = p.strip()
+        pron = re.sub('[0-9]', '', pron)
+        pron = pron.split()
+        npron = [arpa_to_osx[p] for p in pron]
+        enpron[w] = ' '.join(npron)
+
+
+def getpron(w):
+    w = re.sub('[^A-z]', '', j)
+    if w:
+        return enpron[w.upper()]
+    else:
+        return 'UW'
+
 
 seq = []
 noteon = None
@@ -35,10 +98,22 @@ for i,j in zip(seq[:len(lyrics)], lyrics):
     #say('[[pbas %s]] test' % i.data[0], r = 1/(0.01 + i.tick * 0.005))
     #say('[[pbas %s]] [[inpt phon]] [[volm %s]] UW' % tuple(i[1]), r=100*(220.0/i[2]))
     speed = 500*(220.0/i[2])
+    speed=220
     note = [i[1][0]-12, i[1][1]]
-    #tosay +='[[ctxt WORD]] [[pmod 0]] [[pbas %s]] [[volm %s]] [[rate %s]] %s' % tuple(note + [speed,j])
-    tosay +='[[inpt PHON]] [[pbas %s]] [[volm %s]] [[rate %s]] %s' % tuple(note + [speed,'UW,'])
+    tosay +='[[pmod 0]] [[pbas %s]] [[volm %s]] [[rate %s]] %s' % tuple(note + [speed,j])
+    #tosay +='[[inpt PHON]] [[pbas %s]] [[volm %s]] [[rate %s]] %s' % tuple(note + [speed,'UW,'])
 
+tosay = '[[inpt TUNE]]\n'
+for i,j in zip(seq[:len(lyrics)], lyrics):
+    note = [i[1][0], i[1][1]]
+    dur = float(i[2]/2)
+    phon =  getpron(j)
+    tosay += '~\n'
+    print j, dur
+    for p in phon.split():
+        tosay += p + ' {D %s; P %s:0}\n' % (dur / len(phon.split()), str(2 ** ((note[0]-69.0)/12) * 440))
+
+open('test', 'w').write(tosay)
 say(tosay)
 
 say(' '.join(lyrics))
