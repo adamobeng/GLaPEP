@@ -94,7 +94,7 @@ if __name__ == '__main__':
                 tright.addnstr(1, 1, error['errorcode'] + ': ' + error['errormessage'], maxy/2)
                 tright.standend()
                 tright.refresh()
-                lyrics = sing(messages[error['errorcode']], offsets[error['errorcode']], True)
+                lyrics = sing(messages[error['errorcode']], offsets[error['errorcode']])
 
                 left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2, curses.color_pair(3))
             else:
