@@ -129,8 +129,8 @@ def sing(message, offset=(0, 0), silent=False):
         if not silent: say(tosay)
 
 messages = {
-'E231': ('SILENCE', 'Error on line two', 'SILENCE', 'There should be white space here you know', 'SILENCE', 'You just made E two hundred and thirty one happen') ,
-'E113': ('SILENCE', 'This is so basic', 'SILENCE', 'Python uses tabs to mark out its blocks', 'SILENCE', 'No use in you trying to fix this indent bug on line four') ,
+'E231': ('SILENCE', 'Error on line three', 'SILENCE', 'There should be white space here you know', 'SILENCE', 'You just made E two hundred and thirty one happen') ,
+'E113': ('SILENCE', 'This is so basic', 'SILENCE', 'Python uses tabs to mark out its blocks', 'SILENCE', 'No use in you trying to fix this indent bug on line five') ,
 'E711': ('SILENCE', 'You are so so so dumb at this do you even code\nTo compare to None should not be done with equals') ,
 'E303': ('SILENCE', 'And you left three blank lines') ,
 'F821': ('SILENCE', 'This name has not been defined') ,
