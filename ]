@@ -1,6 +1,0 @@
-import curses
-
-def main(stdscreen):
-    print test
-
-curses.wrapper(main)()
