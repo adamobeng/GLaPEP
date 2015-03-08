@@ -14,6 +14,7 @@ if __name__ == '__main__':
         curses.start_color()
         curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLUE)
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
         screen.bkgd(curses.color_pair(1))
         screen.refresh()
@@ -85,15 +86,22 @@ if __name__ == '__main__':
         for i, line in enumerate(filelines):
             if i > 10: set_pic('./hackny.ascii')
             if i== (maxx-2): break
-            left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2)
-            left.refresh()
             if rindex[str(i)]: 
                 error = rindex[str(i)][0]
                 tright.clear()
                 tright.box()
+                tright.standout()
                 tright.addnstr(1, 1, error['errorcode'] + ': ' + error['errormessage'], maxy/2)
+                tright.standend()
                 tright.refresh()
-                lyrics = sing(messages[error['errorcode']], offsets[error['errorcode']])
+                lyrics = sing(messages[error['errorcode']], offsets[error['errorcode']], True)
+
+                left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2, curses.color_pair(3))
+            else:
+                left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2)
+
+            left.refresh()
+
             time.sleep(0.5)
 
         tright.clear()
