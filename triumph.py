@@ -1,119 +1,105 @@
-# coding=utf-8
-from time import sleep
-import subprocess
-import re
-import midi
-
-def say(t):
-    #  http://stackoverflow.com/questions/3516007/run-process-and-dont-wait
-    subprocess.call(['say', t, '-v', 'Vicki'])
-
-m = midi.read_midifile('./jonathan_coulton-still_alive.mid')
-notes = list(i for i in m[1] if isinstance(i, midi.NoteOnEvent))
-
-#m = midi.read_midifile('./mary.mid')
-#notes = list(i for i in m[1] if isinstance(i, midi.NoteOnEvent))
-
-arpa_to_osx = [
-    ('AA',	'AA'),
-    ('AE',	'AE'),
-    ('AH',	'UX'),
-    ('AO',	'AO'),
-    ('AW',	'AW'),
-    ('AY',	'AY'),
-    ('B',	'b'),
-    ('CH',	'C'),
-    ('D',	'd'),
-    ('DH',	'D'),
-    ('EH',	'EH'),
-    ('ER',	'UX'),
-    ('EY',	'EY'),
-    ('F',	'f'),
-    ('G',	'g'),
-    ('HH',	'h'),
-    ('IH',	'IH'),
-    ('IY',	'IY'),
-    ('JH',	'j'),
-    ('K',	'k'),
-    ('L',	'l'),
-    ('M',	'm'),
-    ('N',	'n'),
-    ('NG',	'N'),
-    ('OW',	'OW'),
-    ('OY',	'OY'),
-    ('P',	'p'),
-    ('R',	'r'),
-    ('S',	's'),
-    ('SH',	'S'),
-    ('T',	't'),
-    ('TH',	'T'),
-    ('UH',	'UH'),
-    ('UW',	'UW'),
-    ('V',	'v'),
-    ('W',	'w'),
-    ('Y',	'y'),
-    ('Z',	'z'),
-    ('ZH',	'Z')
-]
-arpa_to_osx = dict(arpa_to_osx)
-
-enpron = {}
-for l in open('/Users/adam/code/hebraize/cmudict-0.7b'):
-    if l[:3] != ';;;':
-        w, p = l.split(' ', 1)
-        pron = p.strip()
-        pron = re.sub('[0-9]', '', pron)
-        pron = pron.split()
-        npron = [arpa_to_osx[p] for p in pron]
-        enpron[w] = ' '.join(npron)
+import curses
+import time
+from util import *
+import collections
 
 
-def getpron(w):
-    w = re.sub('[^A-z]', '', j)
-    if w:
-        return enpron[w.upper()]
-    else:
-        return 'UW'
+def main(screen):
+    maxx, maxy = screen.getmaxyx() 
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLUE)
+    curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
 
+    screen.bkgd(curses.color_pair(1))
+    screen.refresh()
 
-seq = []
-noteon = None
-pos = 0
-# TODO This monofies the track
-for n in notes:
-    pos = pos + n.tick
-    if not noteon and (n.data[1] != 0):
-        noteon = n
-        noteonpos = pos
-    elif noteon and (n.data[0] == noteon.data[0]):
-        seq.append((noteon.tick, noteon.data, pos-noteonpos))
-        noteon = None
+    left = curses.newwin(maxx, maxy/2, 0, 0)
+    left.bkgd(curses.color_pair(2))
+    left.box()
+    left.addstr(1, 1, "test")
+    left.refresh()
 
+    tright = curses.newwin(maxx/2, maxy/2, 0, maxy/2)
+    tright.bkgd(curses.color_pair(2))
+    tright.box()
+    tright.addstr(1, 1, "test")
+    tright.refresh()
     
-lyrics = "This was a triumph. I'm making a note here: HUGE SUCCESS.  It's hard to overstate my satisfaction.".split()
-#lyrics = "Mary had a little lamb, little lamb, little lamb".split()
+    bright = curses.newwin(maxx/2, maxy/2, maxx/2, maxy/2)
+    bright.bkgd(curses.color_pair(2))
 
-tosay = ''
-for i,j in zip(seq[:len(lyrics)], lyrics):
-    #say('[[pbas %s]] test' % i.data[0], r = 1/(0.01 + i.tick * 0.005))
-    #say('[[pbas %s]] [[inpt phon]] [[volm %s]] UW' % tuple(i[1]), r=100*(220.0/i[2]))
-    speed = 500*(220.0/i[2])
-    speed=220
-    note = [i[1][0]-12, i[1][1]]
-    tosay +='[[pmod 0]] [[pbas %s]] [[volm %s]] [[rate %s]] %s' % tuple(note + [speed,j])
-    #tosay +='[[inpt PHON]] [[pbas %s]] [[volm %s]] [[rate %s]] %s' % tuple(note + [speed,'UW,'])
+    def set_pic(filename):
+        bright.erase()
+        for i, line in enumerate(open(filename)):
+            if i== ((maxx/2) -1): break
+            bright.addnstr(i, 0, line, maxy/2)
+        bright.refresh()
 
-tosay = '[[inpt TUNE]]\n'
-for i,j in zip(seq[:len(lyrics)], lyrics):
-    note = [i[1][0], i[1][1]]
-    dur = float(i[2]/2)
-    phon =  getpron(j)
-    tosay += '~\n'
-    print j, dur
-    for p in phon.split():
-        tosay += p + ' {D %s; P %s:0}\n' % (dur / len(phon.split()), str(2 ** ((note[0]-69.0)/12) * 440))
 
-open('test', 'w').write(tosay)
-say(tosay)
+    FILE='./wrong.py'
+    filelines = open(FILE).read().split('\n')
 
-say(' '.join(lyrics))
+    report = get_report(FILE)
+    rindex = collections.defaultdict(list)
+    for r in report:
+        if int(r['linen']) in (3,5, 7, 12, 14): # TODO Remove this
+            rindex[r['linen']].append(r)
+
+    def sing(message, offset=(0, 0), silent=False):
+        for nsentence, sentence in enumerate(message):
+            tosay = '[[inpt TUNE]]\n'
+            sentence = sentence.split()
+            phons = list(getpron(j) for j in sentence)
+            phrase = phrases[nsentence +offset[0]][offset[1]:]
+            #print len(phrase), len(phons), phrase, sentence, phons
+            if sentence!= ['SILENCE',]: 
+                tright.addnstr(2+nsentence, 1, ' '.join(sentence), maxy/2)
+                tright.refresh()
+            #if sentence!= ['SILENCE',]: print ' '.join(sentence)
+            for i, phon in zip(phrase, phons):
+                if i[0] != 0: 
+                    tosay += ',\n%% {D %s}\n' % (float(i[0])/2)
+                    continue
+                note = [i[1][0], i[1][1]]
+                dur = min(float(i[2]), 400)
+                tosay += '\n'
+                for p in phon.split():
+                    tosay += p  + ' {D %s; P %s:0}\n' % (dur / len(phon.split()), str(round(2 ** ((note[0]-69.0)/12) * 440)))
+                tosay += ','
+            if not silent: say(tosay)
+
+
+    offsets ={'E231':(0,0),
+            'E113': (6, 0),
+    'E711': (12, 0),
+    'E303': (12, 22),
+    'F821': (12, 28)}
+
+    set_pic('./aperture.ascii')
+
+    for i, line in enumerate(filelines):
+        if i > 10: set_pic('./hackny.ascii')
+        if i== (maxx-2): break
+        left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2)
+        left.refresh()
+        if rindex[str(i)]: 
+            error = rindex[str(i)][0]
+            tright.clear()
+            tright.box()
+            tright.addnstr(1, 1, error['errorcode'] + ': ' + error['errormessage'], maxy/2)
+            tright.refresh()
+            lyrics = sing(messages[error['errorcode']], offsets[error['errorcode']])
+        time.sleep(0.5)
+
+    tright.clear()
+    tright.box()
+    sing(('SILENCE', 'How did you ever even get to Hack N Y',), (12, 34))
+    time.sleep(2)
+        
+    c = screen.getch()
+
+try:
+    curses.wrapper(main)
+except KeyboardInterrupt:
+    print "Got KeyboardInterrupt exception. Exiting..."
+    exit()
