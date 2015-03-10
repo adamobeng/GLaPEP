@@ -9,8 +9,17 @@ It's very easy to ignore the minor violations of PEP8 style when the existing to
 
 GLaPEP8 only works on OS X, because it makes use of the 'say' command.
 
-You're going to need to supply a few files.
+### Prerequisites
+
+jp2a
+
+Python libraries:
 
 ## Usage
 
 ./GLaPEP8.py wrong.py
+
+
+### Pictures
+
+Pictures in the directory 'pics/' will be displayed in the lower-right pane. Files with the extension '.jpg' are converted to ASCII art by jp2a, files with the extension '.ascii' are displayed as-is. You might consider using a HackNY or an Aperture Science logo.
