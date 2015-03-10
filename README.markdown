@@ -4,8 +4,20 @@ It's very easy to ignore the minor violations of PEP8 style when the existing to
 
 ## Installation
 
+### Prerequisites
+
+jp2a
+
+Python libraries:
+
+
 You're going to need to supply a few files.
 
 ## Usage
 
 ./GLaPEP8.py wrong.py
+
+
+### Pictures
+
+Pictures in the directory 'pics/' will be displayed in the lower-right pane. Files with the extension '.jpg' are converted to ASCII art by jp2a, files with the extension '.ascii' are displayed as-is. You might consider using a HackNY or an Aperture Science logo.

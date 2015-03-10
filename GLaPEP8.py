@@ -4,6 +4,7 @@ import time
 from util import *
 import collections
 import sys
+import os
 
 
 if __name__ == '__main__':
@@ -35,8 +36,16 @@ if __name__ == '__main__':
         bright.bkgd(curses.color_pair(2))
 
         def set_pic(filename):
+            if filename[-3:] == 'jpg':
+                p = subprocess.Popen(['jp2a', filename, '--output=-', '--size=' + str(maxy/2) + 'x' + str(maxx/2), '-i'], stdout = subprocess.PIPE)
+                # http://stackoverflow.com/a/14693789
+                picfile = (re.sub(r'\x1b[^m]*m', '', l) for l in p.communicate()[0].split('\n'))
+
+            elif filename[-3:] == 'ascii':
+                picfile = open(filename)
+
             bright.erase()
-            for i, line in enumerate(open(filename)):
+            for i, line in enumerate(picfile):
                 if i== ((maxx/2) -1): break
                 bright.addnstr(i, 0, line, maxy/2)
             bright.refresh()
@@ -81,10 +90,12 @@ if __name__ == '__main__':
         'E303': (12, 22),
         'F821': (12, 28)}
 
-        set_pic('./aperture.ascii')
+        pics = list('pics/'+ f for f in os.listdir('pics/'))
+
+        if pics: set_pic(pics[0])
 
         for i, line in enumerate(filelines):
-            if i > 10: set_pic('./hackny.ascii')
+            if not(i % 3) and pics: set_pic(pics[i % len(pics)])
             if i== (maxx-2): break
             if rindex[str(i+1)]: 
                 error = rindex[str(i+1)][0]
