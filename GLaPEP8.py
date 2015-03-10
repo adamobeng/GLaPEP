@@ -86,21 +86,22 @@ if __name__ == '__main__':
         for i, line in enumerate(filelines):
             if i > 10: set_pic('./hackny.ascii')
             if i== (maxx-2): break
-            if rindex[str(i)]: 
-                error = rindex[str(i)][0]
+            if rindex[str(i+1)]: 
+                error = rindex[str(i+1)][0]
                 tright.clear()
                 tright.box()
                 tright.standout()
                 tright.addnstr(1, 1, error['errorcode'] + ': ' + error['errormessage'], maxy/2)
                 tright.standend()
                 tright.refresh()
+                left.addnstr(i+1, 1, str(i+1) +': ' +line, maxy/2, curses.color_pair(3))
+                left.refresh()
+
                 lyrics = sing(messages[error['errorcode']], offsets[error['errorcode']])
-
-                left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2, curses.color_pair(3))
             else:
-                left.addnstr(i+1, 1, str(i) +': ' +line, maxy/2)
+                left.addnstr(i+1, 1, str(i+1) +': ' +line, maxy/2)
+                left.refresh()
 
-            left.refresh()
 
             time.sleep(0.5)
 
@@ -114,5 +115,4 @@ if __name__ == '__main__':
     try:
         curses.wrapper(main)
     except KeyboardInterrupt:
-        print "Got KeyboardInterrupt exception. Exiting..."
         exit()
